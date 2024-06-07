@@ -6,8 +6,6 @@ from mavros_msgs.srv import CommandBool
 from mavros_msgs.srv import CommandTOL
 from geometry_msgs.msg import PoseStamped, TwistStamped 
 import time
-import pynput.keyboard
-from pynput.keyboard import Listener
 
 rospy.init_node('mavros_takeoff_python')
 rate = rospy.Rate(10)
@@ -61,6 +59,15 @@ def disarm():
         rospy.loginfo(response)
     except rospy.ServiceException as e:
         print("Disarming failed: %s" %e)
+def rotate(yaw_rate, duration=5):
+    vel = TwistStamped()
+    vel.header.stamp = rospy.Time.now()
+    vel.twist.angular.z = yaw_rate
+
+    start_time = rospy.Time.now()
+    while rospy.Time.now() - start_time < rospy.Duration(duration):
+        vel_pub.publish(vel)
+        rate.sleep()
 def move_to_position(x, y, z, duration=5):
     pose = PoseStamped()
     pose.header.stamp = rospy.Time.now()
@@ -84,63 +91,19 @@ def move_with_velocity(vx, vy, vz, duration=5):
     while rospy.Time.now() - start_time < rospy.Duration(duration):
         vel_pub.publish(vel)
         rate.sleep()
-def move_with_velocitynotdurationx(vx):
+def xmove(vx):
     vel = TwistStamped()
     vel.twist.linear.x = vx
     vel_pub.publish(vel)
-def move_with_velocitynotdurationy(vy):
+def ymove(vy):
     vel = TwistStamped()
     vel.twist.linear.y = vy
     vel_pub.publish(vel)
-def move_with_velocitynotdurationz(vz):
+def zmove(vz):
     vel = TwistStamped()
     vel.twist.linear.z = vz
     vel_pub.publish(vel)
-def on_press(key):
-  try:
 
-    if key == pynput.keyboard.Key.esc:
-        return False  # Esc tuşuna basılırsa programı sonlandır
-    elif key.char == 'w':
-        move_with_velocitynotdurationy(1)  # Move backward for 3 seconds
-    elif key.char == 's':
-        move_with_velocitynotdurationy(-1)  # Move backward for 3 seconds
-    elif key.char == 'a':
-        move_with_velocitynotdurationx(-1)  # Move backward for 3 seconds
-    elif key.char == 'd':
-        move_with_velocitynotdurationx(1)  # Move backward for 3 seconds
-    elif key.char == 'g':
-        move_with_velocitynotdurationz(-1)
-    elif key.char == 't':
-        move_with_velocitynotdurationz(1)
-    
-
-  except:
-      return 0
-
-def on_release(key):
-    try:
-        if key.char == 'w':
-            move_with_velocitynotdurationy(0)
-        elif key.char == 's':
-            move_with_velocitynotdurationy(0)
-        elif key.char == 'a':
-            move_with_velocitynotdurationx(0)
-        elif key.char == 'd':
-            move_with_velocitynotdurationx(0)
-        elif key.char == 'g':
-            move_with_velocitynotdurationz(0)
-        elif key.char == 't':
-            move_with_velocitynotdurationz(0)
-    except:
-      return 0
-setmode("GUIDED")
-arming()
-takeoff()
-#time.sleep(5)  # Allow a short time after takeoff
-with Listener(on_press=on_press, on_release=on_release) as listener:
-    listener.join()
-    
 
  
 
